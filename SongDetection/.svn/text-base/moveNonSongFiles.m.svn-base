@@ -1,0 +1,73 @@
+function [bSong, scores, fileInfo] = moveNonSongFiles(songDir, nonsongDir, songDuration, thresDuration, thresRatio, minSongFreq, maxSongFreq, bDebug)
+%Author: Aaron Andalman  2006
+
+%The function moves any songs it doesn't believe to contain song to the
+%specifed nonsong directory.  For subsong you may want to use less
+%stringent parameters.
+
+%Input:
+%songDir: pass the absolute folder path containing the wavfiles
+%nonSongDir: the absolute directory where the nonsong files will be moved.
+%songDuration: information about the length of the birds singing bouts, use 0.6 (secs)
+%thresDuration: good default .6 although go .5 is you want to be on the 
+%   safe side.  The value should between 0 and 1 representing the percent
+%   of time that should be above the threshold ratio.
+%thresRatio: good default is 2 to 3 (although you could go higher if you 
+%    have good signal to noise in the audio).  The ratio of power in the
+%    song freqs to power outside those freqs.
+%minSongFreq = 1000
+%maxSongFreq = 7000
+%bDebug: no files will be moved and a descriptive figure will be displayed
+%for each file.
+
+%Output:
+%bSong: array of boolean with length equal to number of files in directory.
+%scores: array containing the maximum song score in each file.
+%fileInfo: the name location of the file associated with each index in the
+%arrays
+
+%Make nonsong directory:
+mkdir(nonsongDir);
+
+%Get info on the song directory
+d = dir([songDir,filesep,'*.wav']);
+fileInfo = d;
+
+%Initialize variables
+numFiles = length(d);
+numMoved = 0;
+bSong = zeros(length(d),1);
+scores = zeros(length(d),1);
+
+%Check each file for song and move if no song.
+for(nFile = 1:length(d))
+    filename = [songDir,filesep,d(nFile).name];
+    [path,name,ext] = fileparts(filename);
+    if(strcmp(ext,'.wav') | strcmp(ext,'.dat'))
+        if(strcmp(ext,'.dat')) 
+            %[temp, audio] = daq_readDatafile(filename);
+            %fs = 40000;
+        elseif(strcmp(ext,'.wav'))
+            [audio, fs] = wavread(filename);
+ 
+            %Check if song:
+            [bSong(nFile), timeTaken, scores(nFile)] = songDetector5(audio, fs, songDuration, thresDuration, thresRatio, minSongFreq, maxSongFreq, bDebug);%All files in training set have sampleRate of 40kHz.
+
+            %Move file if no song...
+            if(~bDebug & ~bSong(nFile))
+                currfilename = [songDir,filesep,d(nFile).name];
+                movefilename = [nonsongDir, filesep, d(nFile).name];
+                movefile(currfilename, movefilename);
+                numMoved = numMoved + 1;
+            end
+
+            %Display current status
+            disp([songDir,': current file: ', num2str(nFile), '/', num2str(numFiles),' : Moved ', num2str(numMoved), ' files to ', nonsongDir]);
+        end
+        
+        if(bDebug)
+            title(filename);
+            pause;
+        end
+    end
+end

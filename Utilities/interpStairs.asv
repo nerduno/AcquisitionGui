@@ -1,0 +1,14 @@
+function xi = interpStairs(t,x,ti)
+%interpolate using clos
+
+last = 1;
+xi = zeros(size(ti));
+for ndx = 1:length(ti)
+    last = find(ti(ndx)>t(last:end-1),1,'last');
+    if(isempty(last))
+        last = 1;
+        ti(ndx) = 0;
+    else
+        ti(ndx) = x(last);
+    end
+end

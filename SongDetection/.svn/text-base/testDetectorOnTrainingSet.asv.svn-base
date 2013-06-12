@@ -1,0 +1,37 @@
+function [missFiles, falseAlarmFiles] = testDetectorOnTrainingSet(bDebug)
+
+hasSongDir = 'C:\MATLAB6p5\work\Aaron\SongDetectTrainingSet\HasSong\';
+noSongDir = 'C:\MATLAB6p5\work\Aaron\SongDetectTrainingSet\NoSong\';
+
+threshold =.3;
+[numWithSongsCorrect, nSongTrain, meanTime, maxTime, missFiles] = testOnDirectory(hasSongDir, threshold, 1, bDebug);
+[numWithOutSongsInCorrect, nNoSongTrain, meanTime, maxTime, falseAlarmFiles] = testOnDirectory(noSongDir, threshold, 0, bDebug);
+
+missedFrac = 1 - (numWithSongsCorrect/ nSongTrain)
+falseAlarmFrac = numWithOutSongsInCorrect /  nNoSongTrain
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
+
+function [numWithSong, numFiles, meanTime, maxTime, failedFiles] = testOnDirectory(songDir, threshold, bSongExpected, bDebug)
+d = dir([songDir,'*.dat']);
+numFiles = length(d);
+
+numWithSong = 0;
+maxTime = 0;
+meanTime = 0;
+numFailed = 0;
+for(nFile = 1:length(d))
+    filename = [songDir,d(nFile).name];
+    [temp, audio] = daq_readDatafile(filename);
+    [bSong, timeTaken] = songDetector1(audio, 40000, threshold, bDebug);%All files in training set have sampleRate of 40kHz.
+    if(bSong)
+        numWithSong = numWithSong + 1;
+    end
+    if(bSong~=bSongExpected)
+        numFailed = numFailed + 1;
+        failedFiles{numFailed} = filename;
+    end
+    maxTime = max(timeTaken, maxTime);
+    meanTime = meanTime + timeTaken;
+end
+meanTime = meanTime / numFiles;

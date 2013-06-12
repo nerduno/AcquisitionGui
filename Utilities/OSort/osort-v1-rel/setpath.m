@@ -1,0 +1,10 @@
+basepathCode='/home/urut/code/osort-v1-rel';
+path(path,[basepathCode ]);
+path(path,[basepathCode '/code/continuous/']);
+path(path,[basepathCode '/code/sortingNew/']);
+path(path,[basepathCode '/code/sortingNew/noiseRemoval']);
+path(path,[basepathCode '/code/sortingNew/projectionTest']);
+path(path,[basepathCode '/code/miniGUI']);
+path(path,[basepathCode '/code/sortingNew/model']);
+path(path,[basepathCode '/code/sortingNew/evaluation']);
+path(path,[basepathCode '/code/3rdParty/gabbiani']);
